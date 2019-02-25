@@ -43,10 +43,10 @@ mutable struct Proximity_word
     proximity::Array{Int64}
 end
 
-word_n=500
+word_n=5000
 knn_n=10
 
-file_name="all.txt"
+file_name="great_expectations.txt"
 
 word_list=Each_word[]
 
@@ -119,8 +119,8 @@ distance_metric=zeros(word_n,word_n)
 
 for i in 2:word_n
     for j in 1:i-1
-        #        d=corr(target_words[i].proximity,target_words[j].proximity)
-        d=one_over_l2_normed(target_words[i].proximity,target_words[j].proximity)
+        d=corr(target_words[i].proximity,target_words[j].proximity)
+
         distance_metric[i,j]=d
         distance_metric[j,i]=d
     end
@@ -168,8 +168,12 @@ end
 
 #pretty_print_matrix(lagrange)
 
-e=eigvals(lagrange)
-x=eigvecs(lagrange)
+(e,x)=eig(lagrange)
+
+
+println([imag(x)!=0.0 for x in e])
+
+
 
 #println(e)
 
@@ -191,8 +195,7 @@ end
 
 function find_closest(evecs,a_vector)
     function similarity(vector_1,vector_2)
-#        dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2))
-        norm(vector_1-vector_2)
+        real(dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2)))
     end
 
     dims=size(evecs)[1]
@@ -202,7 +205,7 @@ function find_closest(evecs,a_vector)
 
     for i in 2:dims
         s=similarity(a_vector,evecs[i,:])
-        if s<closest_s
+        if s>closest_s
             closest_s=s
             closest_i=i
         end
@@ -215,7 +218,7 @@ end
 
 function find_second_closest(evecs,a_vector)
     function similarity(vector_1,vector_2)
-        dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2))
+        real(dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2)))
     end
 
     dims=size(evecs)[1]
@@ -228,7 +231,7 @@ function find_second_closest(evecs,a_vector)
     
     for i in 2:dims
         s=similarity(a_vector,evecs[i,:])
-        if s<closest_s
+        if s>closest_s
             second_closest_i=closest_i
             second_closest_s=closest_s
             closest_s=s
@@ -240,28 +243,36 @@ function find_second_closest(evecs,a_vector)
 
 end
 
+# kth eig is x[:,k]
+# kth word is x[k,:]
+
+#println(norm(x[:,1]))
+
+println(x[:,1])
+#println(lagrange*x[:,1])
+
 println([x.word for x in target_words])
 
 v_he=x[target_word_dict["he"],:]
 v_his=x[target_word_dict["his"],:]
 
 v_it=x[target_word_dict["it"],:]
-v_its=x[target_word_dict["its"],:]
+v_its=x[target_word_dict["it's"],:]
 
 v_hes_p=v_he+(v_its-v_it)
 
 v_she=x[target_word_dict["she"],:]
 v_her=x[target_word_dict["her"],:]
 
-v_i=x[target_word_dict["i"],:]
+v_i=x[:,target_word_dict["i"]]
 
 v_her_p=v_she+(v_his-v_he)
 v_my=v_i+(v_his-v_he)
 v_my_2=v_i+(v_her-v_she)
 
-v_hand=x[target_word_dict["hand"],:]
-v_hands=x[target_word_dict["hands"],:]
-v_word=x[target_word_dict["word"],:]
+v_hand=x[:,target_word_dict["hand"]]
+v_hands=x[:,target_word_dict["hands"]]
+v_word=x[:,target_word_dict["word"]]
 v_words_p=v_word+(v_hands-v_hand)
 
 println(target_words[find_closest(x,v_her_p)].word)
@@ -276,6 +287,7 @@ println(target_words[find_closest(x,v_words_p)].word)
 
 println(target_words[find_second_closest(x,v_word)].word)
 println(target_words[find_second_closest(x,v_he)].word)
+println(target_words[find_closest(x,v_he)].word)
 
 #sort_words(x[:,2],[ t.word for t in target_words])
 #sort_words(x[:,3],[ t.word for t in target_words])
