@@ -46,7 +46,7 @@ end
 word_n=5000
 knn_n=10
 
-file_name="great_expectations.txt"
+file_name="the_title_market.txt"
 
 word_list=Each_word[]
 
@@ -193,6 +193,14 @@ function sort_words(evec,words)
     println([x[2] for x in v])
 end
 
+
+function sort_words(evec,words,n)
+    v=collect(zip(evec,words))
+    sort!(v,by=x->x[1])
+    println([x[2] for x in v][1:n])
+end
+
+
 function find_closest(evecs,a_vector)
     function similarity(vector_1,vector_2)
         real(dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2)))
@@ -251,46 +259,46 @@ end
 println(x[:,1])
 #println(lagrange*x[:,1])
 
-println([x.word for x in target_words])
+# println([x.word for x in target_words])
 
-v_he=x[target_word_dict["he"],:]
-v_his=x[target_word_dict["his"],:]
+# v_he=x[target_word_dict["he"],:]
+# v_his=x[target_word_dict["his"],:]
 
-v_it=x[target_word_dict["it"],:]
-v_its=x[target_word_dict["it's"],:]
+# v_it=x[target_word_dict["it"],:]
+# v_its=x[target_word_dict["it's"],:]
 
-v_hes_p=v_he+(v_its-v_it)
+# v_hes_p=v_he+(v_its-v_it)
 
-v_she=x[target_word_dict["she"],:]
-v_her=x[target_word_dict["her"],:]
+# v_she=x[target_word_dict["she"],:]
+# v_her=x[target_word_dict["her"],:]
 
-v_i=x[:,target_word_dict["i"]]
+# v_i=x[:,target_word_dict["i"]]
 
-v_her_p=v_she+(v_his-v_he)
-v_my=v_i+(v_his-v_he)
-v_my_2=v_i+(v_her-v_she)
+# v_her_p=v_she+(v_his-v_he)
+# v_my=v_i+(v_his-v_he)
+# v_my_2=v_i+(v_her-v_she)
 
-v_hand=x[:,target_word_dict["hand"]]
-v_hands=x[:,target_word_dict["hands"]]
-v_word=x[:,target_word_dict["word"]]
-v_words_p=v_word+(v_hands-v_hand)
+# v_hand=x[:,target_word_dict["hand"]]
+# v_hands=x[:,target_word_dict["hands"]]
+# v_word=x[:,target_word_dict["word"]]
+# v_words_p=v_word+(v_hands-v_hand)
 
-println(target_words[find_closest(x,v_her_p)].word)
+# println(target_words[find_closest(x,v_her_p)].word)
 
-println(target_words[find_closest(x,v_my)].word)
+# println(target_words[find_closest(x,v_my)].word)
 
-println(target_words[find_closest(x,v_my_2)].word)
+# println(target_words[find_closest(x,v_my_2)].word)
 
-println(target_words[find_closest(x,v_hes_p)].word)
+# println(target_words[find_closest(x,v_hes_p)].word)
 
-println(target_words[find_closest(x,v_words_p)].word)
+# println(target_words[find_closest(x,v_words_p)].word)
 
-println(target_words[find_second_closest(x,v_word)].word)
-println(target_words[find_second_closest(x,v_he)].word)
-println(target_words[find_closest(x,v_he)].word)
+# println(target_words[find_second_closest(x,v_word)].word)
+# println(target_words[find_second_closest(x,v_he)].word)
+# println(target_words[find_closest(x,v_he)].word)
 
-#sort_words(x[:,2],[ t.word for t in target_words])
-#sort_words(x[:,3],[ t.word for t in target_words])
-#sort_words(x[:,4],[ t.word for t in target_words])
+sort_words(x[:,2],[ t.word for t in target_words],20)
+sort_words(x[:,3],[ t.word for t in target_words],20)
+sort_words(x[:,4],[ t.word for t in target_words],20)
 
 
