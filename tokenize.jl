@@ -1,7 +1,7 @@
 
 
 function strip_word(word::SubString)
-    replace(lowercase(word),r"\?|,|;|!|\.|\"|\"|-|\(|\)|\_|\]|\[","")
+    replace(lowercase(word),r"\?|,|;|!|\.|\"|\"|-|\(|\)|\_|\]|\[|\'|\*","")
 end
 
 function pretty_print_matrix(matrix::Array{Float64})
@@ -16,8 +16,8 @@ function pretty_print_matrix(matrix::Array{Float64})
 end
 
 
-function corr(a::Vector{Int64},b::Vector{Int64})
-    dot(a,b)/(norm(a)*norm(b))
+function corr(a::Vector{Float64},b::Vector{Float64})
+    dot(a,b)#/(norm(a)*norm(b))
 end
 
 
@@ -40,13 +40,13 @@ end
 
 mutable struct Proximity_word
     word::String
-    proximity::Array{Int64}
+    proximity::Array{Float64}
 end
 
-word_n=5000
-knn_n=10
+word_n=1000
+knn_n=20
 
-file_name="cranford.txt"
+file_name="all.txt"
 
 word_list=Each_word[]
 
@@ -74,9 +74,11 @@ sort!(word_list, by= x->x.frequency,rev=true)
 word_total_n=length(word_list)
 
 
+offset_n=200
+
 all_words=Dict(x.word=>i for (i,x) in enumerate(word_list))
 
-target_words=[Proximity_word(x.word,zeros(Int64,word_total_n)) for x in word_list[1:word_n]]
+target_words=[Proximity_word(x.word,zeros(Int64,word_total_n)) for x in word_list[offset_n:word_n+offset_n]]
 
 target_word_dict=Dict(x.word=>i for (i,x) in enumerate(target_words))
 
@@ -105,13 +107,26 @@ while !eof(f)
                 current_word_big_index=target_word_dict[current_word]
                 for (i,window_word) in enumerate(moving_window)
                     if i!=current_word_index
-                        target_words[current_word_big_index].proximity[all_words[window_word]]+=1
+                        target_words[current_word_big_index].proximity[all_words[window_word]]+=1.0
                     end
                 end
             end
         end
     end
 end
+
+
+for this_word in target_words
+    this_word_i=all_words[this_word.word]
+    for i in 1:word_total_n
+        if i!=this_word_i
+            this_word.proximity[i]/=word_list[i].frequency
+            this_word.proximity[i]/=word_list[this_word_i].frequency
+        end
+    end
+end
+
+
 
 #println([ t.word for t in target_words])
 
@@ -149,19 +164,32 @@ for j in 1:word_n
     end
 end
 
-hand_n=target_word_dict["hand"]
 
-println("close to hand")
-for i in 1:word_n
-    if distance_metric[i,hand_n]!=0
-        println(target_word[i])
+function close_to(a_word::String)
+
+    a_word_n=target_word_dict[a_word]
+
+    println("close to "*a_word)
+    
+    for i in 1:word_n
+        if distance_metric[i,a_word_n]!=0
+            println(target_words[i].word)
+        end
     end
+    
+    print("\n")
 end
-print("\n")
 
-#pretty_print_matrix(distance_metric)
+#close_to("hand")
+#close_to("woman")
+#close_to("man")
 
-#lagrange=spzeros(Float64,word_n,word_n)
+
+
+
+# #pretty_print_matrix(distance_metric)
+
+# #lagrange=spzeros(Float64,word_n,word_n)
 lagrange=zeros(Float64,word_n,word_n)
 
 for j in 1:word_n
@@ -181,10 +209,6 @@ end
 #pretty_print_matrix(lagrange)
 
 (e,x)=eig(lagrange)
-
-
-println([imag(x)!=0.0 for x in e])
-
 
 
 #println(e)
@@ -268,49 +292,44 @@ end
 
 #println(norm(x[:,1]))
 
-println(x[:,1])
+#println(x[:,1])
 #println(lagrange*x[:,1])
 
-println([x.word for x in target_words])
+#println([x.word for x in target_words])
 
-v_he=x[target_word_dict["he"],:]
-v_his=x[target_word_dict["his"],:]
+# v_he=x[target_word_dict["he"],:]
+# v_his=x[target_word_dict["his"],:]
 
-v_it=x[target_word_dict["it"],:]
-v_its=x[target_word_dict["it's"],:]
 
-v_hes_p=v_he+(v_its-v_it)
+# v_she=x[target_word_dict["she"],:]
+# v_her=x[target_word_dict["her"],:]
 
-v_she=x[target_word_dict["she"],:]
-v_her=x[target_word_dict["her"],:]
+# v_i=x[:,target_word_dict["i"]]
 
-v_i=x[:,target_word_dict["i"]]
+# v_her_p=v_she+(v_his-v_he)
+# v_my=v_i+(v_his-v_he)
+# v_my_2=v_i+(v_her-v_she)
 
-v_her_p=v_she+(v_his-v_he)
-v_my=v_i+(v_his-v_he)
-v_my_2=v_i+(v_her-v_she)
+# v_hand=x[:,target_word_dict["hand"]]
+# v_hands=x[:,target_word_dict["hands"]]
+# v_word=x[:,target_word_dict["word"]]
+# v_words_p=v_word+(v_hands-v_hand)
 
-v_hand=x[:,target_word_dict["hand"]]
-v_hands=x[:,target_word_dict["hands"]]
-v_word=x[:,target_word_dict["word"]]
-v_words_p=v_word+(v_hands-v_hand)
+# println(target_words[find_closest(x,v_her_p)].word)
 
-println(target_words[find_closest(x,v_her_p)].word)
+# println(target_words[find_closest(x,v_my)].word)
 
-println(target_words[find_closest(x,v_my)].word)
+# println(target_words[find_closest(x,v_my_2)].word)
 
-println(target_words[find_closest(x,v_my_2)].word)
 
-println(target_words[find_closest(x,v_hes_p)].word)
+# println(target_words[find_closest(x,v_words_p)].word)
 
-println(target_words[find_closest(x,v_words_p)].word)
-
-println(target_words[find_second_closest(x,v_word)].word)
-println(target_words[find_second_closest(x,v_he)].word)
-println(target_words[find_closest(x,v_he)].word)
+# println(target_words[find_second_closest(x,v_word)].word)
+# println(target_words[find_second_closest(x,v_he)].word)
+# println(target_words[find_closest(x,v_he)].word)
 
 sort_words(x[:,2],[ t.word for t in target_words],20)
 sort_words(x[:,3],[ t.word for t in target_words],20)
 sort_words(x[:,4],[ t.word for t in target_words],20)
 
-print(e[1:5])
+# print(e[1:5])
