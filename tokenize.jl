@@ -8,16 +8,18 @@ function pretty_print_matrix(matrix::Array{Float64})
     this_size=size(matrix)
     for j in 1:this_size[2]
         for i in 1:this_size[1]
-            print(round(matrix[i,j],2))
+            print(round(matrix[i,j],5))
             print(" ")
         end
         print("\n")
     end
+    println("\n")
 end
 
 
 function corr(a::Vector{Float64},b::Vector{Float64})
-    dot(a,b)#/(norm(a)*norm(b))
+    1/norm(a-b)
+#    dot(a,b)#/(norm(a)*norm(b))
 end
 
 
@@ -43,8 +45,8 @@ mutable struct Proximity_word
     proximity::Array{Float64}
 end
 
-word_n=1000
-knn_n=20
+word_n=10
+knn_n=2
 
 file_name="all.txt"
 
@@ -74,11 +76,11 @@ sort!(word_list, by= x->x.frequency,rev=true)
 word_total_n=length(word_list)
 
 
-offset_n=200
+
 
 all_words=Dict(x.word=>i for (i,x) in enumerate(word_list))
 
-target_words=[Proximity_word(x.word,zeros(Int64,word_total_n)) for x in word_list[offset_n:word_n+offset_n]]
+target_words=[Proximity_word(x.word,zeros(Int64,word_total_n)) for x in word_list[1:word_n]]
 
 target_word_dict=Dict(x.word=>i for (i,x) in enumerate(target_words))
 
@@ -100,7 +102,6 @@ while !eof(f)
         word=strip_word(word)
         if word!=""
             moving_window[point+1]=word
-            point=(point+1)%window_n
             current_word_index=mod(point-big_c,window_n)+1
             current_word=moving_window[current_word_index]
             if haskey(target_word_dict,current_word)
@@ -111,6 +112,7 @@ while !eof(f)
                     end
                 end
             end
+            point=(point+1)%window_n
         end
     end
 end
@@ -143,6 +145,7 @@ end
 
 #println(distance_metric)
 
+pretty_print_matrix(distance_metric)
 
 for row in 1:word_n
     this_row=sort(distance_metric[:,row],rev=true)
@@ -152,8 +155,8 @@ for row in 1:word_n
             distance_metric[column,row]=0.0
         end
     end
-end
 
+end
 
 
 for j in 1:word_n
@@ -187,7 +190,7 @@ end
 
 
 
-# #pretty_print_matrix(distance_metric)
+pretty_print_matrix(distance_metric)
 
 # #lagrange=spzeros(Float64,word_n,word_n)
 lagrange=zeros(Float64,word_n,word_n)
@@ -206,96 +209,103 @@ end
 
 #print("\n")
 
-#pretty_print_matrix(lagrange)
+pretty_print_matrix(lagrange)
 
 (e,x)=eig(lagrange)
 
+pretty_print_matrix(x)
+
+println([word.word for word in target_words])
+
+println(target_word_dict)
 
 #println(e)
 
-function positive_words(evec,words)
-    for (i,w) in enumerate(words)
-        if evec[i]>0
-            print(w*" ")
-        end
-    end
-    println()
-end
+# function positive_words(evec,words)
+#     for (i,w) in enumerate(words)
+#         if evec[i]>0
+#             print(w*" ")
+#         end
+#     end
+#     println()
+# end
 
 
-function sort_words(evec,words)
-    v=collect(zip(evec,words))
-    sort!(v,by=x->real(x[1]),rev=true)
-    println([x[2] for x in v])
-end
+# function sort_words(evec,words)
+#     v=collect(zip(evec,words))
+#     sort!(v,by=x->real(x[1]),rev=true)
+#     println([x[2] for x in v])
+# end
 
 
-function sort_words(evec,words,n)
-    v=collect(zip(evec,words))
-    sort!(v,by=x->real(x[1]),rev=true)
-    println([x[2] for x in v][1:n])
-end
+# function sort_words(evec,words,n)
+#     v=collect(zip(evec,words))
+#     sort!(v,by=x->real(x[1]),rev=true)
+#     println([x[2] for x in v][1:n])
+# end
 
 
-function find_closest(evecs,a_vector)
-    function similarity(vector_1,vector_2)
-        real(dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2)))
-    end
+# function find_closest(evecs,a_vector)
+#     function similarity(vector_1,vector_2)
+#         1/norm(vector_1-vector_2)
+# #        real(dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2)))
+#     end
 
-    dims=size(evecs)[1]
+#     dims=size(evecs)[1]
 
-    closest_i=1
-    closest_s=similarity(a_vector,evecs[1,:])
+#     closest_i=1
+#     closest_s=similarity(a_vector,evecs[1,:])
 
-    for i in 2:dims
-        s=similarity(a_vector,evecs[i,:])
-        if s>closest_s
-            closest_s=s
-            closest_i=i
-        end
-    end
+#     for i in 2:dims
+#         s=similarity(a_vector,evecs[i,:])
+#         if s>closest_s
+#             closest_s=s
+#             closest_i=i
+#         end
+#     end
 
-    closest_i
+#     closest_i
 
-end
+# end
 
 
-function find_second_closest(evecs,a_vector)
-    function similarity(vector_1,vector_2)
-        real(dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2)))
-    end
+# function find_second_closest(evecs,a_vector)
+#     function similarity(vector_1,vector_2)
+#         1/norm(vector_1-vector_2)
+# #        real(dot(vector_1,vector_2)/(norm(vector_1)*norm(vector_2)))
+#     end
 
-    dims=size(evecs)[1]
+#     dims=size(evecs)[1]
 
-    closest_i=1
-    closest_s=similarity(a_vector,evecs[1,:])
+#     closest_i=1
+#     closest_s=similarity(a_vector,evecs[1,:])
 
-    second_closest_i=closest_i
-    second_closest_s=closest_s
+#     second_closest_i=closest_i
+#     second_closest_s=closest_s
     
-    for i in 2:dims
-        s=similarity(a_vector,evecs[i,:])
-        if s>closest_s
-            second_closest_i=closest_i
-            second_closest_s=closest_s
-            closest_s=s
-            closest_i=i
-        end
-    end
+#     for i in 2:dims
+#         s=similarity(a_vector,evecs[i,:])
+#         if s>closest_s
+#             second_closest_i=closest_i
+#             second_closest_s=closest_s
+#             closest_s=s
+#             closest_i=i
+#         end
+#     end
 
-    second_closest_i
+#     second_closest_i
 
-end
+# end
 
-# kth eig is x[:,k]
-# kth word is x[k,:]
+# # kth eig is x[:,k]
+# # kth word is x[k,:]
 
-#println(norm(x[:,1]))
+# #println(norm(x[:,1]))
 
-#println(x[:,1])
-#println(lagrange*x[:,1])
+# #println(x[:,1])
+# #println(lagrange*x[:,1])
 
-#println([x.word for x in target_words])
+# #println([x.word for x in target_words])
 
 # v_he=x[target_word_dict["he"],:]
 # v_his=x[target_word_dict["his"],:]
@@ -328,8 +338,8 @@ end
 # println(target_words[find_second_closest(x,v_he)].word)
 # println(target_words[find_closest(x,v_he)].word)
 
-sort_words(x[:,2],[ t.word for t in target_words],20)
-sort_words(x[:,3],[ t.word for t in target_words],20)
-sort_words(x[:,4],[ t.word for t in target_words],20)
+# sort_words(x[:,2],[ t.word for t in target_words],20)
+# sort_words(x[:,3],[ t.word for t in target_words],20)
+# sort_words(x[:,4],[ t.word for t in target_words],20)
 
 # print(e[1:5])
