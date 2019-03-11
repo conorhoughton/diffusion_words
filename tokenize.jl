@@ -3,7 +3,7 @@
 function word_2_all_words(file_name::String,big_c::Int64,word_n::Int64)
 
     function strip_word(word::SubString)
-        replace(lowercase(word),r"\?|,|;|!|\.|\"|\"|-|\(|\)|\_|\]|\[|\'|\*","")
+        replace(lowercase(word),r"\?|,|:|;|!|\.|\"|\"|-|\(|\)|\_|\]|\[|\'|\*","")
     end
 
 

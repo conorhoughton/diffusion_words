@@ -25,31 +25,6 @@ laplace=make_laplace_matrix(similarity_matrix)
 
 #eigenvectors x[:,i]
 
-struct Eigen
-    eigen_val::Float64
-    eigen_vec::Vector{Float64}
-end
-
-function save_eigens(eigens::Vector{Eigen},all_words,filename::String)
-    f=open("./"*filename,"w")
-    for w in all_words.target_words
-        word=w.word
-        write(f,"$word ")
-    end
-    write(f,"\n\n")
-    for e in eigens
-        val=e.eigen_val
-        write(f,"$val")
-        write(f,"\n")
-        for x in e.eigen_vec
-            write(f,"$x ")
-        end
-        write(f,"\n\n")
-    end
-    close(f)
-end
-    
-
 
 eigen_s=Eigen[]
 
@@ -59,7 +34,7 @@ end
 
 sort!(eigen_s, by=e->e.eigen_val)
 
-save_eigens(eigen_s,all_words,"test_save_eigen.txt")
+save_eigens(eigen_s,all_words,"test_save_eigen_discount.dat")
 
 
 
