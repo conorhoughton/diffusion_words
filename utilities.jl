@@ -70,6 +70,7 @@ function load_eigens(filename::String,line_n::Int64)
 
     readline(f)
     words=split(readline(f)," ")
+    #println(words)
 
     while words[end]==""
         pop!(words)

@@ -1,9 +1,9 @@
-
+ 
 include("utilities.jl")
 
-filename="test_save_eigen.dat"
+filename="test_save_eigen_discount.dat"
 
-vector_n=500
+vector_n=20
 
 (words,eigens)=load_eigens(filename,1+vector_n)
 
@@ -29,11 +29,16 @@ word_vector_dict=Dict(x.word=>i for (i,x) in enumerate(word_vectors))
 
 function find_closest(word_vectors,position,current_word)
 
+    function cosine(a::Vector{Float64},b::Vector{Float64})
+        dot(a,b)/(norm(a)*norm(b))
+    end
+
     first=1
     if first==position
         first+=1
     end
     
+#    closest=cosine(position,word_vectors[first].position)
     closest=norm(position-word_vectors[first].position)
     closest_i=first
     
@@ -51,10 +56,51 @@ function find_closest(word_vectors,position,current_word)
     
 end
 
+
+test=word_vectors[word_vector_dict["him"]].position-word_vectors[word_vector_dict["he"]].position+word_vectors[word_vector_dict["i"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+
+test=word_vectors[word_vector_dict["her"]].position-word_vectors[word_vector_dict["she"]].position+word_vectors[word_vector_dict["he"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+test=word_vectors[word_vector_dict["me"]].position-word_vectors[word_vector_dict["i"]].position+word_vectors[word_vector_dict["he"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+
 test=word_vectors[word_vector_dict["his"]].position-word_vectors[word_vector_dict["he"]].position+word_vectors[word_vector_dict["she"]].position
 
 println(find_closest(word_vectors,test,-1))
 
+test=word_vectors[word_vector_dict["wife"]].position-word_vectors[word_vector_dict["his"]].position+word_vectors[word_vector_dict["her"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+test=word_vectors[word_vector_dict["boy"]].position-word_vectors[word_vector_dict["man"]].position+word_vectors[word_vector_dict["woman"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+
+test=word_vectors[word_vector_dict["father"]].position-word_vectors[word_vector_dict["man"]].position+word_vectors[word_vector_dict["woman"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+
+test=word_vectors[word_vector_dict["father"]].position-word_vectors[word_vector_dict["brother"]].position+word_vectors[word_vector_dict["sister"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+
+test=word_vectors[word_vector_dict["husband"]].position-word_vectors[word_vector_dict["man"]].position+word_vectors[word_vector_dict["woman"]].position
+
+println(find_closest(word_vectors,test,-1))
+
+test=word_vectors[word_vector_dict["run"]].position-word_vectors[word_vector_dict["is"]].position+word_vectors[word_vector_dict["was"]].position
+
+println(find_closest(word_vectors,test,-1))
 
 
 
